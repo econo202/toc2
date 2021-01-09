@@ -235,12 +235,14 @@ class PlayerService : LifecycleService() {
         // callback for vibrator (is registered in audioMixer later on)
         noteStartedListener4Vibration = object : AudioMixer.NoteStartedListener {
             override suspend fun onNoteStarted(noteListItem: NoteListItem?) {
-                withContext(Dispatchers.Default) {
-                    if (noteListItem != null) {
-                        if (getNoteVibrationDuration(noteListItem.id) > 0L)
-                            vibrator?.vibrate(noteListItem.volume, noteListItem)
-                    }
+                if (noteListItem != null) {
+                    if (getNoteVibrationDuration(noteListItem.id) > 0L)
+                        vibrator?.vibrate(noteListItem.volume, noteListItem)
                 }
+            }
+
+            override fun runOnMixerThread(): Boolean {
+                return true
             }
         }
 

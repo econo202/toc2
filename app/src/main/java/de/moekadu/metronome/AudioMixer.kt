@@ -290,6 +290,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
          *   use noteListItem.original, however, the original MUST ONLY used on main thread!
          */
         suspend fun onNoteStarted(noteListItem: NoteListItem?)
+
+        fun runOnMixerThread() = false
     }
 
     /// Callbacks when a note starts together with delay.
@@ -423,8 +425,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     it.frameNumber <= position
                 }.forEach {
                     val noteListItemCopy = it.noteListItem.clone()
-                    launch {
+                    if (it.noteStartedListener.runOnMixerThread()) {
                         it.noteStartedListener.onNoteStarted(noteListItemCopy)
+                    }
+                    else {
+                        launch {
+                            it.noteStartedListener.onNoteStarted(noteListItemCopy)
+                        }
                     }
                 }
                 queuedNoteStartedListeners.removeAll { q -> q.frameNumber <= position }
